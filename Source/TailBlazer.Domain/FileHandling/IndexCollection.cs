@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using TailBlazer.Domain.FileHandling.Search;
 
 namespace TailBlazer.Domain.FileHandling
 {
@@ -11,11 +12,8 @@ namespace TailBlazer.Domain.FileHandling
         public int Count { get; }
         public int Diff { get; }
         public bool IsEmpty => Count != 0;
-
         private LinesChangedReason ChangedReason { get; }
-
         private Index[] Indicies { get; }
-
         private FileInfo Info { get; }
         private Encoding Encoding { get; }
         private TailInfo TailInfo { get; }
@@ -65,8 +63,6 @@ namespace TailBlazer.Domain.FileHandling
                 foreach (var line in ReadLinesByIndex(scroll))
                     yield return line;
             }
-
-
         }
 
         private IEnumerable<Line> ReadLinesByIndex(ScrollRequest scroll)
@@ -127,7 +123,7 @@ namespace TailBlazer.Domain.FileHandling
                 using (var reader = new StreamReaderExtended(stream, Encoding, false))
                 {
 
-                    var startPosition = (long)scroll.FirstIndex;
+                    var startPosition = scroll.Position;
                     var first = (int)CalculateIndexByPositon(startPosition);
                     reader.BaseStream.Seek(startPosition, SeekOrigin.Begin);
 
@@ -156,8 +152,8 @@ namespace TailBlazer.Domain.FileHandling
 
         private Page GetPage(ScrollRequest scroll)
         {
-            int first = scroll.FirstIndex;
-            int size = scroll.PageSize;
+            var first = scroll.FirstIndex;
+            var size = scroll.PageSize;
 
 
             if (scroll.Mode == ScrollReason.Tail)
@@ -264,6 +260,9 @@ namespace TailBlazer.Domain.FileHandling
                     var relativePosition = (index - firstLineInContainer);
                     var relativeIndex = relativePosition / sparseIndex.Compression;
                     var offset = relativePosition % sparseIndex.Compression;
+
+                    if (relativeIndex >= sparseIndex.IndexCount)
+                        relativeIndex = sparseIndex.IndexCount - 1;
                     var start = relativeIndex == 0 ? 0 : sparseIndex.Indicies[relativeIndex - 1];
                     return new RelativeIndex(index, start, offset,false);
                 }
@@ -274,13 +273,13 @@ namespace TailBlazer.Domain.FileHandling
 
         private class RelativeIndex
         {
-            public int Index { get; }
+            public long Index { get; }
             public long Start { get; }
             public int LinesOffset { get; }
             public bool IsEstimate { get;  }
 
 
-            public RelativeIndex(int index, long start, int linesOffset, bool isEstimate)
+            public RelativeIndex(long index, long start, int linesOffset, bool isEstimate)
             {
                 Index = index;
                 Start = start;

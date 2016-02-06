@@ -7,9 +7,12 @@
         xmlns:dockablz="clr-namespace:Dragablz.Dockablz;assembly=Dragablz"
         xmlns:dragablz="clr-namespace:Dragablz;assembly=Dragablz"
         xmlns:infrastucture="clr-namespace:TailBlazer.Infrastucture"
-        xmlns:views="clr-namespace:TailBlazer.Views"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:settings="clr-namespace:TailBlazer.Settings"
+        xmlns:tailBlazer="clr-namespace:TailBlazer"
+        xmlns:controls1="clr-namespace:TailBlazer.Controls"
+        xmlns:recent="clr-namespace:TailBlazer.Views.Recent"
+        xmlns:options="clr-namespace:TailBlazer.Views.Options"
+        xmlns:windowManagement="clr-namespace:TailBlazer.Views.WindowManagement"
         mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
@@ -25,7 +28,7 @@
         WindowTransitionsEnabled="False"
         x:Name="Window"
 
-        d:DataContext="{d:DesignInstance views:WindowViewModel, IsDesignTimeCreatable=False}"
+        d:DataContext="{d:DesignInstance windowManagement:WindowViewModel, IsDesignTimeCreatable=False}"
         Title="Tail Blazer" 
         Height="650"
         Width="850">
@@ -40,6 +43,7 @@
 
             <DataTemplate DataType="{x:Type infrastucture:FileHeader}">
                 <TextBlock Margin="6 2 2 2" 
+                           IsHitTestVisible="True"
                            ToolTipService.ShowOnDisabled="True"
                            ToolTip="{Binding FullName}"
                            Text="{Binding  DisplayName}" />
@@ -49,18 +53,46 @@
             <DataTemplate DataType="{x:Type infrastucture:ViewContainer}">
                 <ContentControl Content="{Binding Content}">
                     <ContentControl.LayoutTransform>
-                            <ScaleTransform ScaleX="{Binding DataContext.GeneralOptions.ScaleRatio.Value, ElementName=Window}" 
+                        <ScaleTransform ScaleX="{Binding DataContext.GeneralOptions.ScaleRatio.Value, ElementName=Window}" 
                                             ScaleY="{Binding DataContext.GeneralOptions.ScaleRatio.Value, ElementName=Window}"/>
-                        </ContentControl.LayoutTransform> 
-                   </ContentControl>
+                    </ContentControl.LayoutTransform>
+                </ContentControl>
             </DataTemplate>
-
         </ResourceDictionary>
     </Window.Resources>
 
     <controls:MetroWindow.RightWindowCommands>
         <controls:WindowCommands>
-            <TextBlock Text="{Binding Version}" Opacity="0.6"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock 
+                    VerticalAlignment="Center"
+                    Text="{Binding Version}" Opacity="0.6"/>
+
+                <materialDesign:PopupBox 
+                    VerticalAlignment="Center" Height="22" Margin="0 0 -6 0">
+                    <StackPanel  Orientation="Vertical" Margin="2">
+
+                        <Button Margin="6 0 0 0"
+                                Command ="{Binding SaveLayoutCommand}"
+                                ToolTip="Save Layout">
+                            <StackPanel Orientation="Horizontal">
+                                <controls1:SaveLayoutIcon Width="18" Height="18"/>
+                                <TextBlock Margin="8 0 8 0" VerticalAlignment="Center" Text="Save layout"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Margin="6 0 0 0"
+                                Command ="{Binding ExitCommmand}"
+                                ToolTip="Exit Tail Blazer">
+                            <StackPanel Orientation="Horizontal">
+                                <controls1:ExitIcon Width="18" Height="18"/>
+                                <TextBlock Margin="8 0 0 0" VerticalAlignment="Center" Text="Exit"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                </materialDesign:PopupBox>
+            </StackPanel>
         </controls:WindowCommands>
     </controls:MetroWindow.RightWindowCommands>
 
@@ -98,15 +130,18 @@
                     Command ="{Binding OpenFileCommand}"
                     ToolTipService.ShowOnDisabled="True"
                     ToolTip="Open file">
-                    <views:FileIcon Width="14" Height="14" Foreground="White"/>
+                    <controls1:FileIcon Width="14" Height="14" Foreground="White"/>
                 </Button>
             </StackPanel>
 
         </controls:WindowCommands>
     </controls:MetroWindow.LeftWindowCommands>
 
-    <AdornerDecorator>
-        <Grid infrastucture:DependencyObjectHook.Receiver="{Binding DropMonitor}">
+
+        <AdornerDecorator>
+        <materialDesign:DialogHost Identifier="{x:Static tailBlazer:DialogNames.EntireWindow}">
+         
+            <Grid infrastucture:DependencyObjectHook.Receiver="{Binding DropMonitor}">
             <Grid.InputBindings>
                 <MouseBinding Gesture="{x:Static infrastucture:MouseWheelGesture.ControlDown}"  
                                 Command="{Binding ZoomInCommand}" />
@@ -115,8 +150,7 @@
             </Grid.InputBindings>
             
 
-             <materialDesign:DrawerHost 
-            IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
+             <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
             <materialDesign:DrawerHost.LeftDrawerContent>
 
                 <Grid>
@@ -125,11 +159,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <settings:GeneralOptionsView
+                    <options:GeneralOptionsView
                             Margin="6 12 6 0"
                             DataContext="{Binding GeneralOptions}"/>
 
-                    <views:RecentFilesView 
+                    <recent:RecentFilesView 
                             Grid.Row="1"
                             Margin="6 12 6 0"
                             DataContext="{Binding RecentFiles}"/>
@@ -139,7 +173,7 @@
             </materialDesign:DrawerHost.LeftDrawerContent>
 
             <Grid>
-                <dockablz:Layout >
+                <dockablz:Layout   x:Name="Layout" >
                     <dragablz:TabablzControl 
                         x:Name="InitialTabablzControl"
                             HeaderMemberPath="Header" 
@@ -165,12 +199,14 @@
                     IsHitTestVisible="False">
 
                     <TextBlock  FontSize="26" HorizontalAlignment="Center" Margin="0 0 0 4" Text="Drag files here"/>
-                    <views:FileIcon BorderThickness="0" Width="50" Height="50" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                    <controls1:FileIcon x:Name="FileIcon" BorderThickness="0" Width="50" Height="50" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                     <TextBlock FontSize="26" Margin="0 4 0 0" Text="to open" HorizontalAlignment="Center"/>
+
                 </StackPanel>
             </Grid>
         </materialDesign:DrawerHost>
 
         </Grid>
+        </materialDesign:DialogHost>
     </AdornerDecorator>
 </controls:MetroWindow>

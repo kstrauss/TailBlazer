@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DynamicData.Kernel;
+using TailBlazer.Domain.FileHandling.Search;
 
 namespace TailBlazer.Domain.FileHandling
 {
@@ -155,7 +156,7 @@ namespace TailBlazer.Domain.FileHandling
             if (scroll.SpecifiedByPosition)
             {
                 //get line number fro
-                first = IndexOf(scroll.FirstIndex);
+                first = IndexOf(scroll.Position);
             }
             else
             {

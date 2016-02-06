@@ -5,6 +5,7 @@ namespace TailBlazer.Domain.FileHandling
 {
     public interface ILineScroller : IDisposable
     {
-        IObservableList<Line> Lines { get; }
+        IObservableCache<Line, LineKey> Lines { get; }
     }
+
 }

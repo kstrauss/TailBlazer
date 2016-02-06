@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TailBlazer.Domain.FileHandling
 {
@@ -6,6 +7,9 @@ namespace TailBlazer.Domain.FileHandling
     {
         public int PageSize { get;  }
         public int FirstIndex { get;  }
+
+        public long Position { get; }
+
         public bool SpecifiedByPosition { get;  }
 
         public ScrollReason Mode { get; }
@@ -15,6 +19,15 @@ namespace TailBlazer.Domain.FileHandling
             PageSize = pageSize;
             Mode = ScrollReason.Tail;
         }
+
+        public ScrollRequest(int pageSize, long position)
+        {
+            PageSize = pageSize;
+            Position = position;
+            SpecifiedByPosition = true;
+            Mode = ScrollReason.User;
+        }
+
         public ScrollRequest(int pageSize, int firstIndex, bool specifiedByPosition=false)
         {
             PageSize = pageSize;
@@ -38,11 +51,15 @@ namespace TailBlazer.Domain.FileHandling
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            if (Mode== ScrollReason.Tail)
+            if (Mode == ScrollReason.Tail)
                 return PageSize == other.PageSize && Mode == other.Mode;
 
-            return PageSize == other.PageSize && FirstIndex == other.FirstIndex && Mode == other.Mode;
+            return PageSize == other.PageSize
+                && FirstIndex == other.FirstIndex
+                 && Position == other.Position
+                && Mode == other.Mode;
         }
+
 
         public override bool Equals(object obj)
         {
@@ -58,6 +75,8 @@ namespace TailBlazer.Domain.FileHandling
             {
                 var hashCode = PageSize;
                 hashCode = (hashCode*397) ^ FirstIndex;
+                hashCode = (hashCode*397) ^ Position.GetHashCode();
+                hashCode = (hashCode*397) ^ SpecifiedByPosition.GetHashCode();
                 hashCode = (hashCode*397) ^ (int) Mode;
                 return hashCode;
             }

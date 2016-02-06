@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
+using StructureMap;
 using StructureMap.Configuration.DSL;
 using TailBlazer.Domain.FileHandling;
+using TailBlazer.Domain.FileHandling.Search;
+using TailBlazer.Domain.Formatting;
 using TailBlazer.Domain.Infrastructure;
 using TailBlazer.Domain.Settings;
 using ILogger = TailBlazer.Domain.Infrastructure.ILogger;
@@ -22,16 +25,21 @@ namespace TailBlazer.Infrastucture
                     log4net.Config.XmlConfigurator.Configure(stream);
                 }
             }
-            else {
+            else
+            {
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(new FileInfo(path));
             }
             For<ILogger>().Use<Log4NetLogger>().Ctor<Type>("type").Is(x => x.ParentType).AlwaysUnique();
 
             For<ISelectionMonitor>().Use<SelectionMonitor>();
             For<ISearchInfoCollection>().Use<SearchInfoCollection>();
+            For<ISearchMetadataCollection>().Use<SearchMetadataCollection>().Transient();
+            
+            For<ITextFormatter>().Use<TextFormatter>();
 
             For<ISettingsStore>().Use<FileSettingsStore>().Singleton();
             For<IFileWatcher>().Use<FileWatcher>();
+
 
             For<UhandledExceptionHandler>().Singleton();
             For<ObjectProvider>().Singleton();
@@ -42,12 +50,13 @@ namespace TailBlazer.Infrastucture
             {
                 scanner.ExcludeType<ILogger>();
 
-                //to do, need a auto-exclude these AppConventions
+                //to do, need a auto-exclude these from AppConventions
                 scanner.ExcludeType<SelectionMonitor>();
                 scanner.ExcludeType<SearchInfoCollection>();
-                scanner.ExcludeType<FileWatcher>();
+                scanner.ExcludeType<SearchMetadataCollection>();
+                scanner.ExcludeType<ITextFormatter>();
 
-                //  scanner.ExcludeType<ISelectionMonitor>();
+                scanner.ExcludeType<FileWatcher>();
                 scanner.LookForRegistries();
                 scanner.Convention<AppConventions>();
 

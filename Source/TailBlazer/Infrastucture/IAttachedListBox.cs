@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using DynamicData;
 using TailBlazer.Views;
+using TailBlazer.Views.Tail;
 
 namespace TailBlazer.Infrastucture
 {
     public interface IAttachedListBox
     {
         void Receive(ListBox selector);
-    }
-
-
-    public class LineViewer: ListBox 
-    {
-        
     }
 
 

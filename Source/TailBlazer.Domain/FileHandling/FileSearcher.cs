@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Text;
 using DynamicData;
 using TailBlazer.Domain.Annotations;
+using TailBlazer.Domain.FileHandling.Search;
 using TailBlazer.Domain.Infrastructure;
 
 namespace TailBlazer.Domain.FileHandling
@@ -112,11 +113,11 @@ namespace TailBlazer.Domain.FileHandling
                    {
                        /*
                             This hack imposes a limitation on the number of items returned as memory can be 
-                            absolutely hammered [I have senn 20MB memory when searching a 1 GB file - obviously not an option]
+                            absolutely hammered [I have seen 20MB memory when searching a 1 GB file - obviously not an option]
                            TODO: A proper solution. 
-                           1. How about index to file?
-                           2. Allow auto pipe of large files
-                           3. Allow user to have some control here
+                                   1. How about index to file?
+                                   2. Allow auto pipe of large files
+                                   3. Allow user to have some control here
                        */
 
                        var sum = searchData.Items.Sum(fss => fss.Lines.Length);

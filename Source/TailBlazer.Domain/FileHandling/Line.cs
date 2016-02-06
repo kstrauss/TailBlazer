@@ -13,14 +13,19 @@ namespace TailBlazer.Domain.FileHandling
         public LineInfo LineInfo { get;  }
 
         private long Start { get; }
+        public LineKey Key { get; }
 
+        [Obsolete("Only used for testing")]
         public Line(int number, string text, DateTime? timestamp)
         {
             Number = number;
             Start = number;
             Text = text;
             Timestamp = timestamp;
+            Key = new LineKey(text, number);
         }
+
+   
 
 
         public Line(LineInfo lineInfo, string text, DateTime? timestamp)
@@ -33,6 +38,7 @@ namespace TailBlazer.Domain.FileHandling
             Number = LineInfo.Line;
             Start = LineInfo.Start;
             Index = LineInfo.Index;
+            Key = new LineKey(text, lineInfo.Start);
         }
 
         private sealed class TextStartEqualityComparer : IEqualityComparer<Line>
